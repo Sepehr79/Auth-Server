@@ -1,38 +1,38 @@
 package com.sepehr.authentication_server.controller;
 
+import com.sepehr.authentication_server.bussiness.EmailVerifierSender;
+import com.sepehr.authentication_server.controller.dto.ResponseDTO;
 import com.sepehr.authentication_server.model.io.UserIO;
 import com.sepehr.authentication_server.model.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("${api.path}")
 @RequiredArgsConstructor
 public class AuthController {
 
-    @Value("${spring.mail.username}")
-    private String source;
-
     private final UserService userService;
 
-    private final JavaMailSender javaMailSender;
+    private final EmailVerifierSender emailVerifierSender;
 
     @PostMapping("/users")
-    public void temporarySaveUser(@RequestBody UserIO userIO){
-        Pair<String, String> temporarySavingResult = userService.temporarySave(userIO);
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setFrom(source);
-        mailMessage.setSubject("Authentication");
-        mailMessage.setTo(temporarySavingResult.getFirst());
-        mailMessage.setText("Your auth code: " + temporarySavingResult.getSecond());
-        javaMailSender.send(mailMessage);
+    public ResponseDTO temporarySaveUser(@RequestBody UserIO userIO){
+        Pair<String, String> emailTokenResult = userService.temporarySave(userIO);
+        Pair<String, String> sourceDestination = emailVerifierSender.sendVerifyEmail(emailTokenResult);
+        return new ResponseDTO(
+                "Successful",
+                "Verifier email sent",
+                Map.of(
+                        "Source", sourceDestination.getFirst(),
+                        "destination", sourceDestination.getSecond())
+        );
     }
 
 }

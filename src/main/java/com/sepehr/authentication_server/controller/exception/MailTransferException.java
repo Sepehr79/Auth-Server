@@ -1,4 +1,4 @@
-package com.sepehr.authentication_server.controller;
+package com.sepehr.authentication_server.controller.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

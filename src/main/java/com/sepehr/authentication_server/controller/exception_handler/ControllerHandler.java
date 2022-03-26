@@ -1,6 +1,6 @@
 package com.sepehr.authentication_server.controller.exception_handler;
 
-import com.sepehr.authentication_server.controller.MailTransferException;
+import com.sepehr.authentication_server.controller.exception.MailTransferException;
 import com.sepehr.authentication_server.controller.dto.ResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -3,6 +3,7 @@ package com.sepehr.authentication_server.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sepehr.authentication_server.bussiness.EmailVerifierSender;
 import com.sepehr.authentication_server.controller.dto.ResponseDTO;
+import com.sepehr.authentication_server.controller.exception.MailTransferException;
 import com.sepehr.authentication_server.model.io.UserIO;
 import com.sepehr.authentication_server.model.service.UserService;
 import org.junit.jupiter.api.BeforeAll;

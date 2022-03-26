@@ -1,6 +1,6 @@
 package com.sepehr.authentication_server.bussiness;
 
-import com.sepehr.authentication_server.controller.MailTransferException;
+import com.sepehr.authentication_server.controller.exception.MailTransferException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;

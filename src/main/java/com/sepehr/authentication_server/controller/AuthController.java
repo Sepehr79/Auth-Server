@@ -29,7 +29,7 @@ public class AuthController {
         return new ResponseDTO(
                 "Successful",
                 "Verifier email sent",
-                Map.of("Source", sourceDestination.getFirst(),
+                Map.of("source", sourceDestination.getFirst(),
                         "destination", sourceDestination.getSecond())
         );
     }

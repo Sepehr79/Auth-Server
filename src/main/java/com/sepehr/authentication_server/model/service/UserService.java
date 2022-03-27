@@ -1,5 +1,6 @@
 package com.sepehr.authentication_server.model.service;
 
+import com.sepehr.authentication_server.bussiness.DataType;
 import com.sepehr.authentication_server.bussiness.NumberGenerator;
 import com.sepehr.authentication_server.controller.exception.UserNotFoundException;
 import com.sepehr.authentication_server.controller.exception.WrongPasswordException;
@@ -51,7 +52,7 @@ public class UserService {
             }
             throw new WrongVerifierException(email, verifier);
         }
-        throw new UserNotFoundException(email);
+        throw new UserNotFoundException(email, DataType.TEMPORARY);
     }
 
     public User verifyByEmailAndPassword(String email, String password){
@@ -62,7 +63,25 @@ public class UserService {
             }
             throw new WrongPasswordException(email, password);
         }
-        throw new UserNotFoundException(email);
+        throw new UserNotFoundException(email, DataType.PERMANENT);
+    }
+
+    public void changePasswordByEmailAndVerifier(String email, String verifier, String newPassword){
+        var redisUser = redisUserRepo.findById(email)
+                .orElseThrow(() -> new UserNotFoundException(email, DataType.TEMPORARY));
+        var mongoUser = mongoUserRepo.findById(email)
+                .orElseThrow(() -> new UserNotFoundException(email, DataType.PERMANENT));
+        if (redisUser.getToken().equals(verifier)){
+            mongoUserRepo.save(mongoUser.toBuilder().password(newPassword).build());
+            return;
+        }
+        throw new WrongVerifierException(email, verifier);
+    }
+
+    public void deleteUserByEmail(String email){
+        if (!mongoUserRepo.existsById(email))
+            throw new UserNotFoundException(email, DataType.PERMANENT);
+        mongoUserRepo.deleteById(email);
     }
     
 }

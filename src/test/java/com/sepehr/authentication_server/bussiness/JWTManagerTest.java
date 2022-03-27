@@ -4,7 +4,6 @@ package com.sepehr.authentication_server.bussiness;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.sepehr.authentication_server.model.entity.MongoUser;
-import com.sepehr.authentication_server.model.entity.RedisUser;
 import com.sepehr.authentication_server.model.entity.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;

@@ -1,7 +1,7 @@
 package com.sepehr.authentication_server.controller;
 
 import com.sepehr.authentication_server.bussiness.EmailVerifierSender;
-import com.sepehr.authentication_server.controller.dto.ResponseDTO;
+import com.sepehr.authentication_server.controller.dto.ResponseStateDTO;
 import com.sepehr.authentication_server.model.io.UserIO;
 import com.sepehr.authentication_server.model.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +23,10 @@ public class AuthController {
     private final EmailVerifierSender emailVerifierSender;
 
     @PostMapping("/users")
-    public ResponseDTO temporarySaveUser(@RequestBody UserIO userIO){
+    public ResponseStateDTO temporarySaveUser(@RequestBody UserIO userIO){
         Pair<String, String> emailTokenResult = userService.temporarySave(userIO);
         Pair<String, String> sourceDestination = emailVerifierSender.sendVerifyEmail(emailTokenResult);
-        return new ResponseDTO(
+        return new ResponseStateDTO(
                 "Successful",
                 "Verifier email sent",
                 Map.of("source", sourceDestination.getFirst(),

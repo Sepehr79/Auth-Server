@@ -46,6 +46,18 @@ public class AuthController {
         );
     }
 
+    @PostMapping("/users/{email}/{verifier}/{newPassword}")
+    public ResponseStateDTO changePassword(@PathVariable String email,
+                                           @PathVariable String verifier,
+                                           @PathVariable String newPassword){
+        userService.changePasswordByEmailAndVerifier(email, verifier, newPassword);
+        return new ResponseStateDTO(
+            "Password modification",
+            "User password successfully changed",
+            Map.of("email", email)
+        );
+    }
+
     @GetMapping("/users/{email}/{password}")
     public ResponseStateDTO verifyUser(@PathVariable String email, @PathVariable String password){
         User user = userService.verifyByEmailAndPassword(email, password);
@@ -56,4 +68,15 @@ public class AuthController {
                         "token", jwtManager.generateUserToken(user))
         );
     }
+
+    @DeleteMapping("/users/{email}")
+    public ResponseStateDTO deleteUser(@PathVariable String email){
+        userService.deleteUserByEmail(email);
+        return new ResponseStateDTO(
+            "User deletion",
+            "User successfully deleted by the given email",
+            Map.of("email", email)
+        );
+    }
+
 }

@@ -3,6 +3,7 @@ package com.sepehr.authentication_server.model.service;
 import com.sepehr.authentication_server.bussiness.NumberGenerator;
 import com.sepehr.authentication_server.controller.exception.UserNotFoundException;
 import com.sepehr.authentication_server.controller.exception.WrongVerifierException;
+import com.sepehr.authentication_server.model.entity.MongoUser;
 import com.sepehr.authentication_server.model.entity.RedisUser;
 import com.sepehr.authentication_server.model.entity.User;
 import com.sepehr.authentication_server.model.io.UserIO;
@@ -119,6 +120,17 @@ class UserServiceTest {
         }
 
         Mockito.reset(redisUserRepo);
+    }
+
+    @Test
+    void changePasswordTest() {
+        RedisUser redisUser = RedisUser.builder().email(EMAIL).password("1234").token("token").build();
+        MongoUser mongoUser = MongoUser.builder().email(EMAIL).password("1234").build();
+        redisUserRepo.save(redisUser);
+        mongoUserRepo.save(mongoUser);
+
+        userService.changePasswordByEmailAndVerifier(EMAIL, "token", "newPassword");
+        assertEquals("newPassword" ,mongoUserRepo.findById(EMAIL).get().getPassword());
     }
 
 

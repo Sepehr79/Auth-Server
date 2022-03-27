@@ -1,8 +1,8 @@
 package com.sepehr.authentication_server.controller.exception_handler;
 
 import com.sepehr.authentication_server.controller.dto.ResponsePropertiesDTO;
-import com.sepehr.authentication_server.controller.exception.MailTransferException;
 import com.sepehr.authentication_server.controller.dto.ResponseStateDTO;
+import com.sepehr.authentication_server.controller.exception.MailTransferException;
 import com.sepehr.authentication_server.controller.exception.UserNotFoundException;
 import com.sepehr.authentication_server.controller.exception.WrongPasswordException;
 import com.sepehr.authentication_server.controller.exception.WrongVerifierException;

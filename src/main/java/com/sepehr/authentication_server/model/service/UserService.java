@@ -2,6 +2,7 @@ package com.sepehr.authentication_server.model.service;
 
 import com.sepehr.authentication_server.bussiness.NumberGenerator;
 import com.sepehr.authentication_server.controller.exception.UserNotFoundException;
+import com.sepehr.authentication_server.controller.exception.WrongPasswordException;
 import com.sepehr.authentication_server.controller.exception.WrongVerifierException;
 import com.sepehr.authentication_server.model.entity.MongoUser;
 import com.sepehr.authentication_server.model.entity.RedisUser;
@@ -49,6 +50,17 @@ public class UserService {
                 );
             }
             throw new WrongVerifierException(email, verifier);
+        }
+        throw new UserNotFoundException(email);
+    }
+
+    public User verifyByEmailAndPassword(String email, String password){
+        var mongoUserOptional = mongoUserRepo.findById(email);
+        if (mongoUserOptional.isPresent()){
+            if (mongoUserOptional.get().getPassword().equals(password)){
+                return mongoUserOptional.get();
+            }
+            throw new WrongPasswordException(email, password);
         }
         throw new UserNotFoundException(email);
     }

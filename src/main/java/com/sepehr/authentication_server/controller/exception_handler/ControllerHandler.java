@@ -4,6 +4,7 @@ import com.sepehr.authentication_server.controller.dto.ResponsePropertiesDTO;
 import com.sepehr.authentication_server.controller.exception.MailTransferException;
 import com.sepehr.authentication_server.controller.dto.ResponseStateDTO;
 import com.sepehr.authentication_server.controller.exception.UserNotFoundException;
+import com.sepehr.authentication_server.controller.exception.WrongPasswordException;
 import com.sepehr.authentication_server.controller.exception.WrongVerifierException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,12 +29,12 @@ public class ControllerHandler {
         );
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
+    @ExceptionHandler({UserNotFoundException.class, WrongPasswordException.class})
     public ResponseEntity<ResponseStateDTO> userNotFoundException(UserNotFoundException userNotFoundException){
         return getResponse(
                 ResponsePropertiesDTO.builder()
-                        .subject("Invalid email")
-                        .message("User not found with the given email")
+                        .subject("User details")
+                        .message("Invalid email or password")
                         .properties(Map.of("email", userNotFoundException.getEmail()))
                         .httpStatus(HttpStatus.BAD_REQUEST)
                         .build()

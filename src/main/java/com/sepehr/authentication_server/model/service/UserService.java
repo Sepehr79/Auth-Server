@@ -5,6 +5,7 @@ import com.sepehr.authentication_server.controller.exception.UserNotFoundExcepti
 import com.sepehr.authentication_server.controller.exception.WrongVerifierException;
 import com.sepehr.authentication_server.model.entity.MongoUser;
 import com.sepehr.authentication_server.model.entity.RedisUser;
+import com.sepehr.authentication_server.model.entity.User;
 import com.sepehr.authentication_server.model.io.UserIO;
 import com.sepehr.authentication_server.model.repo.MongoUserRepo;
 import com.sepehr.authentication_server.model.repo.RedisUserRepo;
@@ -37,16 +38,15 @@ public class UserService {
         return Pair.of(userIO.getEmail(), verifierCode);
     }
 
-    public void saveByEmailAndVerifier(String email, String verifier){
+    public User saveByEmailAndVerifier(String email, String verifier){
         var redisUserOptional = redisUserRepo.findById(email);
         if (redisUserOptional.isPresent()){
             if (redisUserOptional.get().getToken().equals(verifier)){
                 RedisUser redisUser = redisUserOptional.get();
-                mongoUserRepo.save(
+                return mongoUserRepo.save(
                         MongoUser.builder().email(redisUser.getEmail()).password(redisUser.getPassword())
                                 .authorities(redisUser.getAuthorities()).roles(redisUser.getRoles()).build()
                 );
-                return;
             }
             throw new WrongVerifierException(email, verifier);
         }

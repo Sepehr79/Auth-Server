@@ -4,6 +4,7 @@ import com.sepehr.authentication_server.bussiness.NumberGenerator;
 import com.sepehr.authentication_server.controller.exception.UserNotFoundException;
 import com.sepehr.authentication_server.controller.exception.WrongVerifierException;
 import com.sepehr.authentication_server.model.entity.RedisUser;
+import com.sepehr.authentication_server.model.entity.User;
 import com.sepehr.authentication_server.model.io.UserIO;
 import com.sepehr.authentication_server.model.repo.MongoUserRepo;
 import com.sepehr.authentication_server.model.repo.RedisUserRepo;
@@ -74,7 +75,9 @@ class UserServiceTest {
         userIO.setRole(List.of("ADMIN"));
 
         userService.temporarySave(userIO);
-        userService.saveByEmailAndVerifier(EMAIL, verifierCode);
+        User user = userService.saveByEmailAndVerifier(EMAIL, verifierCode);
+        assertEquals(EMAIL, user.getEmail());
+        assertEquals(1, user.getRoles().size());
 
         assertTrue(mongoUserRepo.existsById(EMAIL));
     }

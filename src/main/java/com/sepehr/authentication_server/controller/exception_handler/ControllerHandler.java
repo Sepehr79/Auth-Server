@@ -1,7 +1,7 @@
 package com.sepehr.authentication_server.controller.exception_handler;
 
 import com.sepehr.authentication_server.controller.exception.MailTransferException;
-import com.sepehr.authentication_server.controller.dto.ResponseDTO;
+import com.sepehr.authentication_server.controller.dto.ResponseStateDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -13,8 +13,8 @@ import java.util.Map;
 public class ControllerHandler {
 
     @ExceptionHandler(MailTransferException.class)
-    public ResponseEntity<ResponseDTO> mailException(MailTransferException mailTransferException){
-        var responseDTO = ResponseDTO.builder()
+    public ResponseEntity<ResponseStateDTO> mailException(MailTransferException mailTransferException){
+        var responseDTO = ResponseStateDTO.builder()
                 .subject("Failed to send email")
                 .message(mailTransferException.getMessage())
                 .properties(Map.of(

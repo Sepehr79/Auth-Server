@@ -1,24 +1,18 @@
 package com.sepehr.authentication_server.model.entity;
 
-import lombok.Data;
-import org.springframework.data.annotation.Id;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.redis.core.RedisHash;
 
-import java.util.List;
-
 @RedisHash(timeToLive = 60)
-@Data
-public class RedisUser {
-
-    @Id
-    private String email;
-
-    private String password;
-
-    private List<String> roles;
-
-    private List<String> authorities;
-
+@SuperBuilder(toBuilder = true)
+@NoArgsConstructor
+@Setter
+@Getter
+@EqualsAndHashCode(callSuper = true)
+public class RedisUser extends User {
     private String token;
-
 }

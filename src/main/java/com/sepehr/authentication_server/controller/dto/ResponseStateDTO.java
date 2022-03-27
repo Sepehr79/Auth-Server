@@ -11,7 +11,7 @@ import java.util.Map;
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ResponseDTO {
+public class ResponseStateDTO {
 
     private String subject;
     private String message;

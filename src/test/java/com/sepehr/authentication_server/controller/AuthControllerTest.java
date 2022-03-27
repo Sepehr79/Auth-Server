@@ -2,7 +2,7 @@ package com.sepehr.authentication_server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sepehr.authentication_server.bussiness.EmailVerifierSender;
-import com.sepehr.authentication_server.controller.dto.ResponseDTO;
+import com.sepehr.authentication_server.controller.dto.ResponseStateDTO;
 import com.sepehr.authentication_server.controller.exception.MailTransferException;
 import com.sepehr.authentication_server.model.io.UserIO;
 import com.sepehr.authentication_server.model.service.UserService;
@@ -67,7 +67,7 @@ class AuthControllerTest {
                 .content(OBJECT_MAPPER.writeValueAsString(USER_IO)))
                 .andExpect(status().isOk())
                 .andDo(result -> {
-                    ResponseDTO responseDTO = OBJECT_MAPPER.readValue(result.getResponse().getContentAsString(), ResponseDTO.class);
+                    ResponseStateDTO responseDTO = OBJECT_MAPPER.readValue(result.getResponse().getContentAsString(), ResponseStateDTO.class);
                     Map<String, String> sourceDistance = responseDTO.getProperties();
                     assertEquals(sourceDistance.get("source"), SOURCE_EMAIL);
                     assertEquals(sourceDistance.get("destination"), DISTANCE_EMAIL);
@@ -86,7 +86,7 @@ class AuthControllerTest {
                         .content(OBJECT_MAPPER.writeValueAsString(USER_IO)))
                 .andExpect(status().isInternalServerError())
                 .andDo(result -> {
-                    ResponseDTO responseDTO = OBJECT_MAPPER.readValue(result.getResponse().getContentAsString(), ResponseDTO.class);
+                    ResponseStateDTO responseDTO = OBJECT_MAPPER.readValue(result.getResponse().getContentAsString(), ResponseStateDTO.class);
                     assertEquals("Failed to send email", responseDTO.getSubject());
                     Map<String, String> sourceDistance = responseDTO.getProperties();
                     assertEquals(sourceDistance.get("source"), SOURCE_EMAIL);

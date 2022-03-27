@@ -2,8 +2,11 @@ package com.sepehr.authentication_server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sepehr.authentication_server.bussiness.EmailVerifierSender;
+import com.sepehr.authentication_server.bussiness.JWTManager;
 import com.sepehr.authentication_server.controller.dto.ResponseStateDTO;
 import com.sepehr.authentication_server.controller.exception.MailTransferException;
+import com.sepehr.authentication_server.model.entity.MongoUser;
+import com.sepehr.authentication_server.model.entity.User;
 import com.sepehr.authentication_server.model.io.UserIO;
 import com.sepehr.authentication_server.model.service.UserService;
 import org.junit.jupiter.api.BeforeAll;
@@ -16,10 +19,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.util.Pair;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -28,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthControllerTest {
 
     private static final String SOURCE_EMAIL = "cess.kashanu@gmail.com";
-    private static final String DISTANCE_EMAIL = "cess.kashanu@gmail.com";
+    private static final String DISTANCE_EMAIL = "sepehrmsm1379@gmail.com";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private final static UserIO USER_IO = new UserIO();
     private final static Pair<String, String> EMAIL_TOKEN_RESULT = Pair.of(DISTANCE_EMAIL, "Token");
@@ -47,6 +53,9 @@ class AuthControllerTest {
 
     @MockBean
     UserService userService;
+
+    @MockBean
+    JWTManager jwtManager;
 
 
     @BeforeAll
@@ -92,6 +101,21 @@ class AuthControllerTest {
                     assertEquals(sourceDistance.get("source"), SOURCE_EMAIL);
                     assertEquals(sourceDistance.get("destination"), DISTANCE_EMAIL);
                 });
+    }
+
+    @Test
+    void verifyUserTest() throws Exception {
+        final User user = MongoUser.builder().email(DISTANCE_EMAIL).roles(List.of("ADMIN", "MANAGER")).build();
+        Mockito.when(userService.verifyByEmailAndPassword(DISTANCE_EMAIL, "1234"))
+                .thenReturn(user);
+        Mockito.when(jwtManager.generateUserToken(user))
+                .thenReturn("Token");
+
+        MvcResult mvcResult = mockMvc.perform(get(path + "/users/" + DISTANCE_EMAIL + "/1234"))
+                .andExpect(status().isOk())
+                .andReturn();
+        ResponseStateDTO responseStateDTO = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(), ResponseStateDTO.class);
+        assertEquals("Token" ,responseStateDTO.getProperties().get("token"));
     }
 
 

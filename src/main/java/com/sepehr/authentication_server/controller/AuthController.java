@@ -6,7 +6,6 @@ import com.sepehr.authentication_server.controller.dto.ResponseStateDTO;
 import com.sepehr.authentication_server.model.entity.User;
 import com.sepehr.authentication_server.model.io.UserIO;
 import com.sepehr.authentication_server.model.service.UserService;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.util.Pair;
 import org.springframework.web.bind.annotation.*;

@@ -65,19 +65,26 @@ class UserServiceTest {
     }
 
     @Test
-    void saveUserTest(){
+    void saveAndVerifyUserTest(){
         final String verifierCode = "2131";
+        final String password = "1234";
+
         Mockito.when(numberGenerator.generateUserVerifierCode())
                 .thenReturn(verifierCode);
         UserIO userIO = new UserIO();
         userIO.setEmail(EMAIL);
-        userIO.setPassword("1234");
+        userIO.setPassword(password);
         userIO.setRole(List.of("ADMIN"));
 
         userService.temporarySave(userIO);
         User user = userService.saveByEmailAndVerifier(EMAIL, verifierCode);
         assertEquals(EMAIL, user.getEmail());
         assertEquals(1, user.getRoles().size());
+
+        // verify user test
+        User verifiedUser = userService.verifyByEmailAndPassword(EMAIL, password);
+        assertEquals(EMAIL ,verifiedUser.getEmail());
+        assertEquals("ADMIN", verifiedUser.getRoles().get(0));
 
         assertTrue(mongoUserRepo.existsById(EMAIL));
     }

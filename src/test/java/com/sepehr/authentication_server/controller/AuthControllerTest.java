@@ -8,6 +8,8 @@ import com.sepehr.authentication_server.controller.exception.MailTransferExcepti
 import com.sepehr.authentication_server.model.entity.MongoUser;
 import com.sepehr.authentication_server.model.entity.User;
 import com.sepehr.authentication_server.model.io.UserIO;
+import com.sepehr.authentication_server.model.repo.MongoUserRepo;
+import com.sepehr.authentication_server.model.repo.RedisUserRepo;
 import com.sepehr.authentication_server.model.service.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.data.util.Pair;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -25,8 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -36,8 +38,8 @@ class AuthControllerTest {
     private static final String SOURCE_EMAIL = "cess.kashanu@gmail.com";
     private static final String DISTANCE_EMAIL = "sepehrmsm1379@gmail.com";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private final static UserIO USER_IO = new UserIO();
-    private final static Pair<String, String> EMAIL_TOKEN_RESULT = Pair.of(DISTANCE_EMAIL, "Token");
+    private static final UserIO USER_IO = new UserIO();
+    private static final Pair<String, String> EMAIL_TOKEN_RESULT = Pair.of(DISTANCE_EMAIL, "Token");
 
     @Value("${api.path}")
     String path;
@@ -53,6 +55,12 @@ class AuthControllerTest {
 
     @MockBean
     UserService userService;
+
+    @SpyBean
+    RedisUserRepo redisUserRepo;
+
+    @SpyBean
+    MongoUserRepo mongoUserRepo;
 
     @MockBean
     JWTManager jwtManager;
@@ -116,6 +124,28 @@ class AuthControllerTest {
                 .andReturn();
         ResponseStateDTO responseStateDTO = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(), ResponseStateDTO.class);
         assertEquals("Token" ,responseStateDTO.getProperties().get("token"));
+    }
+
+    @Test
+    void changePassword() throws Exception {
+        final String token = "token";
+        final String newPassword = "new";
+        Mockito.doNothing().when(userService).changePasswordByEmailAndVerifier((DISTANCE_EMAIL), (token), (newPassword));
+        MvcResult mvcResult = mockMvc.perform(post(path + "/users/" + DISTANCE_EMAIL + "/" + token + "/" + newPassword))
+                .andExpect(status().isOk())
+                .andReturn();
+        var state = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(), ResponseStateDTO.class);
+        assertEquals(DISTANCE_EMAIL, state.getProperties().get("email"));
+    }
+
+    @Test
+    void deleteUserTest() throws Exception {
+        Mockito.doNothing().when(userService).deleteUserByEmail(DISTANCE_EMAIL);
+        MvcResult mvcResult = mockMvc.perform(delete(path + "/users/" + DISTANCE_EMAIL))
+                .andExpect(status().isOk())
+                .andReturn();
+         ResponseStateDTO dto = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(), ResponseStateDTO.class);
+         assertEquals("User deletion" ,dto.getSubject());
     }
 
 

@@ -1,5 +1,6 @@
 package com.sepehr.authentication_server.model.service;
 
+import com.sepehr.authentication_server.bussiness.DataType;
 import com.sepehr.authentication_server.bussiness.NumberGenerator;
 import com.sepehr.authentication_server.controller.exception.UserNotFoundException;
 import com.sepehr.authentication_server.controller.exception.WrongVerifierException;
@@ -131,6 +132,23 @@ class UserServiceTest {
 
         userService.changePasswordByEmailAndVerifier(EMAIL, "token", "newPassword");
         assertEquals("newPassword" ,mongoUserRepo.findById(EMAIL).get().getPassword());
+    }
+
+    @Test
+    void deleteUserTest(){
+        final String email = "example@gmail.com";
+        mongoUserRepo.save(
+                MongoUser.builder().email(email).build()
+        );
+
+        userService.deleteUserByEmail(email);
+
+        try {
+            userService.deleteUserByEmail(email);
+            fail();
+        }catch (UserNotFoundException userNotFoundException){
+            assertEquals(DataType.PERMANENT,userNotFoundException.getDataType());
+        }
     }
 
 

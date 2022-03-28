@@ -5,7 +5,10 @@ import com.sepehr.authentication_server.bussiness.EmailVerifierSender;
 import com.sepehr.authentication_server.bussiness.JWTManager;
 import com.sepehr.authentication_server.controller.dto.ResponseStateDTO;
 import com.sepehr.authentication_server.controller.exception.MailTransferException;
+import com.sepehr.authentication_server.controller.exception.WrongPasswordException;
+import com.sepehr.authentication_server.controller.exception.WrongVerifierException;
 import com.sepehr.authentication_server.model.entity.MongoUser;
+import com.sepehr.authentication_server.model.entity.RedisUser;
 import com.sepehr.authentication_server.model.entity.User;
 import com.sepehr.authentication_server.model.io.UserIO;
 import com.sepehr.authentication_server.model.repo.MongoUserRepo;
@@ -109,6 +112,54 @@ class AuthControllerTest {
                     assertEquals(sourceDistance.get("source"), SOURCE_EMAIL);
                     assertEquals(sourceDistance.get("destination"), DISTANCE_EMAIL);
                 });
+    }
+
+    @Test
+    void saveUserTest() throws Exception {
+        final String email = "email";
+        final String token = "token";
+        RedisUser redisUser = RedisUser.builder().email(email).token(token).build();
+        Mockito.when(userService.saveByEmailAndVerifier(email, token))
+                .thenReturn(redisUser);
+        Mockito.when(jwtManager.generateUserToken(redisUser))
+                .thenReturn("Token");
+
+        MvcResult mvcResult = mockMvc.perform(post(path + "/users/" + email + "/" + token))
+                .andExpect(status().isOk())
+                .andReturn();
+        var response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(), ResponseStateDTO.class);
+        assertEquals("Token" ,response.getProperties().get("token"));
+    }
+
+    @Test
+    void saveByWrongVerifier() throws Exception {
+        final String email = "email";
+        final String token = "token";
+        Mockito.doThrow(new WrongVerifierException(email, token))
+                .when(userService).saveByEmailAndVerifier(email, token);
+
+        MvcResult mvcResult = mockMvc.perform(post(path + "/users/" + email + "/" + token))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+        var stateDto = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(), ResponseStateDTO.class);
+        assertEquals("Wrong verifier with the given email", stateDto.getMessage());
+        assertEquals(email, stateDto.getProperties().get("email"));
+        assertEquals(token, stateDto.getProperties().get("verifier"));
+    }
+
+    @Test
+    void verifyWithWrongPasswordTest() throws Exception {
+        final String email = "email";
+        final String password = "password";
+
+        Mockito.doThrow(new WrongPasswordException(email, password))
+                .when(userService).verifyByEmailAndPassword(email, password);
+
+        MvcResult mvcResult = mockMvc.perform(get(path + "/users/" + email + "/" + password))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+        var response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(), ResponseStateDTO.class);
+        assertEquals(email, response.getProperties().get(email));
     }
 
     @Test

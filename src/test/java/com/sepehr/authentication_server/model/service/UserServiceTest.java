@@ -3,6 +3,7 @@ package com.sepehr.authentication_server.model.service;
 import com.sepehr.authentication_server.bussiness.DataType;
 import com.sepehr.authentication_server.bussiness.NumberGenerator;
 import com.sepehr.authentication_server.controller.exception.UserNotFoundException;
+import com.sepehr.authentication_server.controller.exception.WrongPasswordException;
 import com.sepehr.authentication_server.controller.exception.WrongVerifierException;
 import com.sepehr.authentication_server.model.entity.MongoUser;
 import com.sepehr.authentication_server.model.entity.RedisUser;
@@ -35,7 +36,7 @@ class UserServiceTest {
     @SpyBean
     RedisUserRepo redisUserRepo;
 
-    @Autowired
+    @SpyBean
     MongoUserRepo mongoUserRepo;
 
     @MockBean
@@ -124,6 +125,37 @@ class UserServiceTest {
     }
 
     @Test
+    void verifyByEmailAndPasswordTest(){
+        Mockito.when(mongoUserRepo.findById(EMAIL))
+                .thenReturn(Optional.empty());
+
+        try {
+            userService.verifyByEmailAndPassword(EMAIL, "password");
+            fail();
+        }catch (UserNotFoundException userNotFoundException){
+            assertEquals(EMAIL, userNotFoundException.getEmail());
+            assertEquals(DataType.PERMANENT.getDatabaseName(), userNotFoundException.getDataType().getDatabaseName());
+        }
+        Mockito.reset(mongoUserRepo);
+    }
+
+    @Test
+    void verifyWithUserAndWrongPassword(){
+        final String password = "wrongPassword";
+        MongoUser mongoUser = MongoUser.builder().email(EMAIL).password("password").build();
+        Mockito.when(mongoUserRepo.findById(EMAIL))
+                .thenReturn(Optional.of(mongoUser));
+
+        try {
+            userService.verifyByEmailAndPassword(EMAIL, password);
+            fail();
+        }catch (WrongPasswordException wrongPasswordException){
+            assertEquals("wrongPassword", wrongPasswordException.getPassword());
+        }
+        Mockito.reset(mongoUserRepo);
+    }
+
+    @Test
     void changePasswordTest() {
         RedisUser redisUser = RedisUser.builder().email(EMAIL).password("1234").token("token").build();
         MongoUser mongoUser = MongoUser.builder().email(EMAIL).password("1234").build();
@@ -132,6 +164,18 @@ class UserServiceTest {
 
         userService.changePasswordByEmailAndVerifier(EMAIL, "token", "newPassword");
         assertEquals("newPassword" ,mongoUserRepo.findById(EMAIL).get().getPassword());
+    }
+
+    @Test
+    void changePasswordWithWrongVerifierTest(){
+        redisUserRepo.save(RedisUser.builder().email(EMAIL).token("token").build());
+        mongoUserRepo.save(MongoUser.builder().email(EMAIL).build());
+        try {
+            userService.changePasswordByEmailAndVerifier(EMAIL, "wrongVerifier", "password");
+            fail();
+        }catch (WrongVerifierException wrongVerifierException){
+            assertEquals("wrongVerifier", wrongVerifierException.getVerifier());
+        }
     }
 
     @Test

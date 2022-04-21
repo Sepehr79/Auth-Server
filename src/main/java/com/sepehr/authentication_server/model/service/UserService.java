@@ -13,6 +13,7 @@ import com.sepehr.authentication_server.model.repo.MongoUserRepo;
 import com.sepehr.authentication_server.model.repo.RedisUserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.util.Pair;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,13 +25,15 @@ public class UserService {
     private final MongoUserRepo mongoUserRepo;
 
     private final NumberGenerator numberGenerator;
+
+    private final PasswordEncoder passwordEncoder;
     
     public Pair<String, String> temporarySave(UserIO userIO){
         String verifierCode = numberGenerator.generateUserVerifierCode();
 
         RedisUser redisUser = new RedisUser();
         redisUser.setEmail(userIO.getEmail());
-        redisUser.setPassword(userIO.getPassword());
+        redisUser.setPassword(passwordEncoder.encode(userIO.getPassword()));
         redisUser.setToken(verifierCode);
         redisUser.setRoles(userIO.getRole());
         redisUser.setAuthorities(userIO.getAuthority());
@@ -58,7 +61,7 @@ public class UserService {
     public User verifyByEmailAndPassword(String email, String password){
         var mongoUserOptional = mongoUserRepo.findById(email);
         if (mongoUserOptional.isPresent()){
-            if (mongoUserOptional.get().getPassword().equals(password)){
+            if (passwordEncoder.matches(password, mongoUserOptional.get().getPassword())){
                 return mongoUserOptional.get();
             }
             throw new WrongPasswordException(email, password);
@@ -72,7 +75,7 @@ public class UserService {
         var mongoUser = mongoUserRepo.findById(email)
                 .orElseThrow(() -> new UserNotFoundException(email, DataType.PERMANENT));
         if (redisUser.getToken().equals(verifier)){
-            mongoUserRepo.save(mongoUser.toBuilder().password(newPassword).build());
+            mongoUserRepo.save(mongoUser.toBuilder().password(passwordEncoder.encode(newPassword)).build());
             return;
         }
         throw new WrongVerifierException(email, verifier);

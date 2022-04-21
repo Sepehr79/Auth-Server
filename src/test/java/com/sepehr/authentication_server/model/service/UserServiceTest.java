@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
@@ -32,6 +33,9 @@ class UserServiceTest {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     @SpyBean
     RedisUserRepo redisUserRepo;
@@ -163,7 +167,7 @@ class UserServiceTest {
         mongoUserRepo.save(mongoUser);
 
         userService.changePasswordByEmailAndVerifier(EMAIL, "token", "newPassword");
-        assertEquals("newPassword" ,mongoUserRepo.findById(EMAIL).get().getPassword());
+        assertTrue(passwordEncoder.matches("newPassword" ,mongoUserRepo.findById(EMAIL).get().getPassword()));
     }
 
     @Test

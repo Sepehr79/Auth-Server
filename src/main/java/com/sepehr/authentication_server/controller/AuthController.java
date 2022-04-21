@@ -6,6 +6,7 @@ import com.sepehr.authentication_server.controller.dto.ResponseStateDTO;
 import com.sepehr.authentication_server.model.entity.User;
 import com.sepehr.authentication_server.model.io.UserIO;
 import com.sepehr.authentication_server.model.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.util.Pair;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,8 @@ public class AuthController {
     private final JWTManager jwtManager;
 
     @PostMapping("/users")
+    @Operation(summary = "New user registration in cache",
+            description = "This path is used when we want to register a new user or change the user password")
     public ResponseStateDTO temporarySaveUser(@RequestBody UserIO userIO){
         Pair<String, String> emailTokenResult = userService.temporarySave(userIO);
         Pair<String, String> sourceDestination = emailVerifierSender.sendVerifyEmail(emailTokenResult);
@@ -36,6 +39,7 @@ public class AuthController {
     }
 
     @PostMapping("/users/{email}/{verifier}")
+    @Operation(summary = "New user registration in permanent memory")
     public ResponseStateDTO saveUser(@PathVariable String email, @PathVariable String verifier){
         User user = userService.saveByEmailAndVerifier(email, verifier);
         return new ResponseStateDTO(
@@ -47,6 +51,7 @@ public class AuthController {
     }
 
     @PostMapping("/users/{email}/{verifier}/{newPassword}")
+    @Operation(summary = "Changing user password")
     public ResponseStateDTO changePassword(@PathVariable String email,
                                            @PathVariable String verifier,
                                            @PathVariable String newPassword){
@@ -59,6 +64,7 @@ public class AuthController {
     }
 
     @GetMapping("/users/{email}/{password}")
+    @Operation(summary = "Verify user and get token")
     public ResponseStateDTO verifyUser(@PathVariable String email, @PathVariable String password){
         User user = userService.verifyByEmailAndPassword(email, password);
         return new ResponseStateDTO(
@@ -70,6 +76,7 @@ public class AuthController {
     }
 
     @DeleteMapping("/users/{email}")
+    @Operation(summary = "Delete user from permanent memory")
     public ResponseStateDTO deleteUser(@PathVariable String email){
         userService.deleteUserByEmail(email);
         return new ResponseStateDTO(

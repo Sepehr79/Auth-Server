@@ -85,32 +85,10 @@ class AuthControllerTest {
         mockMvc.perform(post(path + "/users")
                 .contentType("application/json")
                 .content(OBJECT_MAPPER.writeValueAsString(USER_IO)))
-                .andExpect(status().isOk())
+                .andExpect(status().isAccepted())
                 .andDo(result -> {
                     ResponseStateDTO responseDTO = OBJECT_MAPPER.readValue(result.getResponse().getContentAsString(), ResponseStateDTO.class);
-                    Map<String, String> sourceDistance = responseDTO.getProperties();
-                    assertEquals(sourceDistance.get("source"), SOURCE_EMAIL);
-                    assertEquals(sourceDistance.get("destination"), DISTANCE_EMAIL);
-                });
-    }
-
-    @Test
-    void unsuccessfulTemporarySaveUserTest() throws Exception{
-        Mockito.when(userService.temporarySave(USER_IO))
-                .thenReturn(EMAIL_TOKEN_RESULT);
-        Mockito.doThrow(new MailTransferException(SOURCE_EMAIL, DISTANCE_EMAIL, "Failed"))
-                .when(emailVerifierSender).sendVerifyEmail(EMAIL_TOKEN_RESULT);
-
-        mockMvc.perform(post(path + "/users")
-                        .contentType("application/json")
-                        .content(OBJECT_MAPPER.writeValueAsString(USER_IO)))
-                .andExpect(status().isInternalServerError())
-                .andDo(result -> {
-                    ResponseStateDTO responseDTO = OBJECT_MAPPER.readValue(result.getResponse().getContentAsString(), ResponseStateDTO.class);
-                    assertEquals("Failed to send email", responseDTO.getSubject());
-                    Map<String, String> sourceDistance = responseDTO.getProperties();
-                    assertEquals(sourceDistance.get("source"), SOURCE_EMAIL);
-                    assertEquals(sourceDistance.get("destination"), DISTANCE_EMAIL);
+                    assertEquals(responseDTO.getMessage(), "ACCEPTED");
                 });
     }
 

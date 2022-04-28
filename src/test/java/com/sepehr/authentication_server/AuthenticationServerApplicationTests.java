@@ -65,8 +65,8 @@ class AuthenticationServerApplicationTests {
 				.thenReturn(Pair.of(EMAIL, EMAIL));
 
 		ResponseEntity<ResponseStateDTO> responseStateDTOResponseEntity = testRestTemplate.postForEntity(url, user, ResponseStateDTO.class);
-		assertEquals(HttpStatus.OK, responseStateDTOResponseEntity.getStatusCode());
-		assertEquals("User registration", Objects.requireNonNull(responseStateDTOResponseEntity.getBody()).getSubject());
+		assertEquals(HttpStatus.ACCEPTED, responseStateDTOResponseEntity.getStatusCode());
+		assertEquals("ACCEPTED", Objects.requireNonNull(responseStateDTOResponseEntity.getBody()).getMessage());
 	}
 
 }

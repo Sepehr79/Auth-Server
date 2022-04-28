@@ -3,19 +3,27 @@ package com.sepehr.authentication_server.controller;
 import com.sepehr.authentication_server.bussiness.EmailVerifierSender;
 import com.sepehr.authentication_server.bussiness.JWTManager;
 import com.sepehr.authentication_server.controller.dto.ResponseStateDTO;
+import com.sepehr.authentication_server.controller.exception.MailTransferException;
 import com.sepehr.authentication_server.model.entity.User;
 import com.sepehr.authentication_server.model.io.UserIO;
 import com.sepehr.authentication_server.model.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @RestController
 @RequestMapping("${api.path}")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
 
     private final UserService userService;
@@ -27,14 +35,20 @@ public class AuthController {
     @PostMapping("/users")
     @Operation(summary = "New user registration in cache",
             description = "This path is used when we want to register a new user or change the user password")
-    public ResponseStateDTO temporarySaveUser(@RequestBody UserIO userIO){
+    public ResponseEntity<ResponseStateDTO> temporarySaveUser(@RequestBody UserIO userIO){
         Pair<String, String> emailTokenResult = userService.temporarySave(userIO);
-        Pair<String, String> sourceDestination = emailVerifierSender.sendVerifyEmail(emailTokenResult);
-        return new ResponseStateDTO(
-                "User registration",
-                "Verifier email sent to the user",
-                Map.of("source", sourceDestination.getFirst(),
-                        "destination", sourceDestination.getSecond())
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        executorService.submit(() -> {
+            try {
+                Pair<String, String> sourceDestination = emailVerifierSender.sendVerifyEmail(emailTokenResult);
+                log.info("Processed email source: {}, destination: {}", sourceDestination.getFirst(), sourceDestination.getSecond());
+            }catch (MailTransferException mailTransferException){
+                log.info("Problem with sending email source: {}, destination: {}, message: {}" ,
+                        mailTransferException.getSource(), mailTransferException.getDestination(), mailTransferException.getMessage());
+            }
+        });
+        return new ResponseEntity<>(
+                ResponseStateDTO.builder().message("ACCEPTED").build() , HttpStatus.ACCEPTED
         );
     }
 
